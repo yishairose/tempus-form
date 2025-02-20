@@ -90,8 +90,12 @@ export default function MultiStepForm() {
   const nextStep = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (step === 0) {
-      console.log(methods.getValues("product"));
-
+      methods.trigger("product").then((isValid) => {
+        if (isValid) {
+          setStep(step + 1);
+        }
+      });
+    } else if (step === 1) {
       methods.trigger("agreement").then((isValid) => {
         if (isValid) {
           setStep(step + 1);

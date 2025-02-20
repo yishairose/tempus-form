@@ -15,7 +15,7 @@ import Products from "./formComponents/Prodcuts";
 
 const formSchema = z.object({
   product: z.enum(["residential", "commercial", "development"], {
-    required_error: "You need to select a notification type.",
+    required_error: "You need to select a product type.",
   }),
   agreement: z.literal(true, {
     errorMap: () => ({ message: "Please accept the terms and conditions" }),

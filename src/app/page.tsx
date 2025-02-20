@@ -1,101 +1,242 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { MouseEvent, useState } from "react";
+import { useForm, FormProvider, set } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { StepOne } from "@/app/formComponents/StepOne";
+import { StepTwo } from "@/app/formComponents/StepTwo";
+import { StepThree } from "@/app/formComponents/StepThree";
+import { dummyData } from "@/lib/dummyData";
+import Agreement from "./formComponents/Agreement";
+import { useRouter } from "next/navigation";
+import Products from "./formComponents/Prodcuts";
+
+const formSchema = z.object({
+  product: z.enum(["residential", "commercial", "development"], {
+    required_error: "You need to select a notification type.",
+  }),
+  agreement: z.literal(true, {
+    errorMap: () => ({ message: "Please accept the terms and conditions" }),
+  }),
+  step1: z.object({
+    q1: z.string().min(1, "This field is required"),
+    q2: z.string().min(1, "This field is required"),
+    q3: z.string().min(1, "This field is required"),
+    q4: z.string().min(1, "This field is required"),
+    q5: z.string().min(1, "This field is required"),
+    q6: z.string().min(1, "This field is required"),
+    q7: z.string().min(1, "This field is required"),
+    q8: z.string().min(1, "This field is required"),
+    q9: z.string().min(1, "This field is required"),
+    q10: z.string().min(1, "This field is required"),
+  }),
+  step2: z.object({
+    q1: z.string().min(1, "This field is required"),
+    q2: z.string().min(1, "This field is required"),
+    q3: z.string().min(1, "This field is required"),
+    q4: z.string().min(1, "This field is required"),
+    q5: z.string().min(1, "This field is required"),
+    q6: z.string().min(1, "This field is required"),
+    q7: z.string().min(1, "This field is required"),
+    q8: z.string().min(1, "This field is required"),
+    q9: z.string().min(1, "This field is required"),
+    q10: z.string().min(1, "This field is required"),
+  }),
+  step3: z.object({
+    q1: z.string().min(1, "This field is required"),
+    q2: z.string().min(1, "This field is required"),
+    q3: z.string().min(1, "This field is required"),
+    q4: z.string().min(1, "This field is required"),
+    q5: z.string().min(1, "This field is required"),
+    q6: z.string().min(1, "This field is required"),
+    q7: z.string().min(1, "This field is required"),
+    q8: z.string().min(1, "This field is required"),
+    q9: z.string().min(1, "This field is required"),
+    q10: z.string().min(1, "This field is required"),
+  }),
+});
+
+export type FormValues = z.infer<typeof formSchema>;
+
+export default function MultiStepForm() {
+  const [step, setStep] = useState(0);
+  const router = useRouter();
+  const methods = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: dummyData,
+  });
+
+  const onSubmit = (data: FormValues) => {
+    console.log("hello");
+    // Log the form data as an object to the console
+    console.log("Form Data:", data);
+
+    // You can also format the data if needed
+    const formattedData = {
+      agreement: data.agreement,
+      product: data.product,
+      personalInfo: data.step1,
+      educationAndWork: data.step2,
+      additionalInfo: data.step3,
+    };
+    console.log("Formatted Form Data:", formattedData);
+
+    // Here you would typically send the data to an API or perform other actions
+    router.push("/success");
+  };
+
+  const nextStep = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (step === 0) {
+      console.log(methods.getValues("product"));
+
+      methods.trigger("agreement").then((isValid) => {
+        if (isValid) {
+          setStep(step + 1);
+        }
+      });
+    } else {
+      methods.trigger([]).then((isValid) => {
+        if (isValid && step < 4) {
+          setStep(step + 1);
+        }
+        console.log(isValid);
+      });
+    }
+  };
+
+  const prevStep = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (step > 0) {
+      setStep(step - 1);
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <FormProvider {...methods}>
+      <form
+        onSubmit={methods.handleSubmit(onSubmit)}
+        className="max-w-2xl mx-auto p-6 space-y-8"
+      >
+        <h1 className="text-3xl font-bold text-center">Application Form</h1>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4 w-full">
+            <div className="relative flex-1 flex items-center">
+              <div
+                id="indicator-1"
+                className="w-10 h-10 flex items-center justify-center bg-[#263469] text-white rounded-full transition-colors duration-300"
+              >
+                1
+              </div>
+              <div
+                id="line-1"
+                className={`absolute w-full h-1 ${
+                  step > 0 ? "bg-[#263469]" : "bg-gray-300"
+                } left-0 top-1/2 transform translate-y-[-50%] z-[-1] transition-colors duration-300`}
+              ></div>
+            </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <div className="relative flex-1 flex items-center">
+              <div
+                id="indicator-2"
+                className={`w-10 h-10 flex items-center justify-center ${
+                  step >= 1 ? "bg-[#263469] text-white" : "bg-gray-300"
+                } text-gray-600 rounded-full transition-colors duration-300`}
+              >
+                2
+              </div>
+              <div
+                id="line-2"
+                className={`absolute w-full h-1 ${
+                  step >= 2 ? "bg-[#263469] text-white" : "bg-gray-300"
+                }  left-0 top-1/2 transform translate-y-[-50%] z-[-1] transition-colors duration-300`}
+              ></div>
+            </div>
+            <div className="relative flex-1 flex items-center">
+              <div
+                id="indicator-3"
+                className={`w-10 h-10 flex items-center justify-center ${
+                  step >= 2 ? "bg-[#263469] text-white" : "bg-gray-300"
+                } text-gray-600 rounded-full transition-colors duration-300`}
+              >
+                3
+              </div>
+              <div
+                id="line-3"
+                className={`absolute w-full h-1 ${
+                  step > 2 ? "bg-[#263469] text-white" : "bg-gray-300"
+                }  left-0 top-1/2 transform translate-y-[-50%] z-[-1] transition-colors duration-300`}
+              ></div>
+            </div>
+            <div className="relative flex-1 flex items-center">
+              <div
+                id="indicator-3"
+                className={`w-10 h-10 flex items-center justify-center ${
+                  step >= 3 ? "bg-[#263469] text-white" : "bg-gray-300"
+                } text-gray-600 rounded-full transition-colors duration-300`}
+              >
+                4
+              </div>
+              <div
+                id="line-3"
+                className={`absolute w-full h-1 ${
+                  step > 3 ? "bg-[#263469] text-white" : "bg-gray-300"
+                }  left-0 top-1/2 transform translate-y-[-50%] z-[-1] transition-colors duration-300`}
+              ></div>
+            </div>
+
+            <div>
+              <div
+                id="indicator-4"
+                className={`w-10 h-10 flex items-center justify-center ${
+                  step === 4 ? "bg-[#263469] text-white" : "bg-gray-300"
+                }  text-gray-600 rounded-full transition-colors duration-300`}
+              >
+                5
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {step === 0 && <Products methods={methods} />}
+        {step === 1 && <Agreement methods={methods} />}
+        {step === 2 && <StepOne />}
+        {step === 3 && <StepTwo />}
+        {step === 4 && <StepThree />}
+
+        <div className="flex justify-between">
+          {step > 0 ? (
+            <Button
+              type="button"
+              onClick={prevStep}
+              variant="outline"
+              className="rounded-full border-[#263469] text-[#263469]"
+            >
+              Previous
+            </Button>
+          ) : (
+            <div></div>
+          )}
+          {step < 4 ? (
+            <Button
+              type="button"
+              onClick={nextStep}
+              className="rounded-full bg-[#263469] text-white"
+            >
+              Next
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              className="rounded-full bg-[#263469] text-white"
+            >
+              Submit
+            </Button>
+          )}
+        </div>
+      </form>
+    </FormProvider>
   );
 }

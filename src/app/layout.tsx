@@ -27,6 +27,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <div className="bg-[#263469] w-screen h-16 flex items-center justify-center">
+          <p className="text-white text-2xl font-bold">Tempus Capital</p>
+        </div>
         {children}
       </body>
     </html>

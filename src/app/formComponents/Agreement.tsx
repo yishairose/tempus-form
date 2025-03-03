@@ -14,21 +14,20 @@ function Agreement({ methods }: { methods: UseFormReturn<FormValues> }) {
     <div className="space-y-8">
       <h2 className="text-2xl font-semibold">Terms and Conditions</h2>
       <p className="text-sm text-gray-600">
-        Please read and accept our terms and conditions before proceeding.
+        Please read this carefully before applying:
       </p>
-      <div className="border p-4 rounded-md h-40 overflow-y-auto">
-        <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam
-          auctor, nisl nec ultricies lacinia, nisl nisl aliquam nisl, nec
-          aliquam nisl nisl sit amet nisl. Sed euismod, nisl nec ultricies
-          lacinia, nisl nisl aliquam nisl, nec aliquam nisl nisl sit amet nisl.
-        </p>
-        <p className="mt-2">
-          Nullam auctor, nisl nec ultricies lacinia, nisl nisl aliquam nisl, nec
-          aliquam nisl nisl sit amet nisl. Sed euismod, nisl nec ultricies
-          lacinia, nisl nisl aliquam nisl, nec aliquam nisl nisl sit amet nisl.
-        </p>
-      </div>
+      <ul className="border p-4 px-8 rounded-md h-40 overflow-y-auto list-disc">
+        <li>
+          We do not grant loans on properties used for personal use.We only do
+          unreglated loans
+        </li>
+        <li>
+          Limited companies have to be incorporated in the UK (incl. parents
+          companies)
+        </li>
+        <li>Main applicant has to be a UK resident</li>
+        <li>Property has to be in the UK</li>
+      </ul>
       <div className="flex items-center space-x-2">
         <FormField
           control={methods.control}

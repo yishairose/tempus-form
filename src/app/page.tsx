@@ -1,113 +1,276 @@
 "use client";
-
 import { MouseEvent, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { StepOne } from "@/app/formComponents/StepOne";
-import { StepTwo } from "@/app/formComponents/StepTwo";
-import { StepThree } from "@/app/formComponents/StepThree";
-import { dummyData } from "@/lib/dummyData";
+import { BrokerInformation } from "@/app/formComponents/BrokerInformation";
+import { BorrowerInformation } from "@/app/formComponents/BorrowerInformation";
+import { LoanInformation } from "@/app/formComponents/LoanInformation";
 import Agreement from "./formComponents/Agreement";
 import { useRouter } from "next/navigation";
 import Products from "./formComponents/Prodcuts";
+import { SecurityInformation } from "./formComponents/SecurityInformation";
+import { AdditionalInformation } from "./formComponents/AdditionalInformation";
+import { StepsProgressBar } from "@/components/StepsProgressBar";
 
-const formSchema = z.object({
+import { toast } from "react-hot-toast";
+
+export type UploadedFile = {
+  file_id: string;
+  file_url: string;
+  file_name: string;
+} | null;
+
+export const formSchema = z.object({
   product: z.enum(["residential", "commercial", "development"], {
     required_error: "You need to select a product type.",
   }),
-  agreement: z.literal(true, {
-    errorMap: () => ({ message: "Please accept the terms and conditions" }),
+  agreement: z.boolean().refine((val) => val === true, {
+    message: "Please accept the terms and conditions",
   }),
-  step1: z.object({
-    q1: z.string().min(1, "This field is required"),
-    q2: z.string().min(1, "This field is required"),
-    q3: z.string().min(1, "This field is required"),
-    q4: z.string().min(1, "This field is required"),
-    q5: z.string().min(1, "This field is required"),
-    q6: z.string().min(1, "This field is required"),
-    q7: z.string().min(1, "This field is required"),
-    q8: z.string().min(1, "This field is required"),
-    q9: z.string().min(1, "This field is required"),
-    q10: z.string().min(1, "This field is required"),
+  brokerInfo: z
+    .object({
+      isBroker: z.boolean({
+        required_error: "Please select an option",
+      }),
+      brokerContactName: z.string().optional(),
+      brokerCompanyName: z.string().optional(),
+      brokerPhoneNumber: z.string().optional(),
+      brokerEmailAddress: z.string().optional(),
+      brokerFee: z.string().optional(),
+    })
+    .superRefine((data, ctx) => {
+      const requiredFeilds = [
+        "brokerContactName",
+        "brokerCompanyName",
+        "brokerPhoneNumber",
+        "brokerEmailAddress",
+        "brokerFee",
+      ];
+      if (data.isBroker) {
+        requiredFeilds.forEach((field) => {
+          if (
+            !data[field as keyof typeof data] ||
+            (data[field as keyof typeof data] as string).trim() === ""
+          ) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "This field is required",
+              path: [field],
+            });
+          }
+        });
+      }
+    }),
+  borrowerInfo: z.object({
+    borrowerCorporateName: z.string().min(1, "This field is required"),
+    borrowerCompaniesHouse: z.string().min(1, "This field is required"),
+    borrowerPhoneNumber: z.string().min(1, "This field is required"),
+    borrowerEmailAddress: z.string().min(1, "This field is required"),
+    borrowerPropertyExperience: z
+      .custom<UploadedFile>()
+      .refine(
+        (val): val is UploadedFile =>
+          val !== null &&
+          typeof val === "object" &&
+          "file_id" in val &&
+          "file_url" in val &&
+          "file_name" in val,
+        {
+          message: "Please upload required document",
+        }
+      ),
+    borrowerAssetsAndLiabilities: z
+      .custom<UploadedFile>()
+      .refine(
+        (val): val is UploadedFile =>
+          val !== null &&
+          typeof val === "object" &&
+          "file_id" in val &&
+          "file_url" in val &&
+          "file_name" in val,
+        {
+          message: "Please upload required document",
+        }
+      ),
+
+    borrowerCreditInfo: z.string().min(1, "This field is required"),
   }),
-  step2: z.object({
-    q1: z.string().min(1, "This field is required"),
-    q2: z.string().min(1, "This field is required"),
-    q3: z.string().min(1, "This field is required"),
-    q4: z.string().min(1, "This field is required"),
-    q5: z.string().min(1, "This field is required"),
-    q6: z.string().min(1, "This field is required"),
-    q7: z.string().min(1, "This field is required"),
-    q8: z.string().min(1, "This field is required"),
-    q9: z.string().min(1, "This field is required"),
-    q10: z.string().min(1, "This field is required"),
+  loanInfo: z.object({
+    purposeOfFunds: z.string().min(1, "This field is required"),
+    backgroundStory: z.string().min(1, "This field is required"),
+    netAmountRequiredDayOne: z.string().min(1, "This field is required"),
+    netAmountRequiredForWorks: z.string().optional(),
+    ltvRequired: z.string().min(1, "This field is required"),
+    loanTerm: z.string().min(1, "This field is required"),
+    exitStrategy: z.string().min(1, "This field is required"),
+    currentStatus: z.string().min(1, "This field is required"),
+    solicitorsDetails: z.string().min(1, "This field is required"),
   }),
-  step3: z.object({
-    q1: z.string().min(1, "This field is required"),
-    q2: z.string().min(1, "This field is required"),
-    q3: z.string().min(1, "This field is required"),
-    q4: z.string().min(1, "This field is required"),
-    q5: z.string().min(1, "This field is required"),
-    q6: z.string().min(1, "This field is required"),
-    q7: z.string().min(1, "This field is required"),
-    q8: z.string().min(1, "This field is required"),
-    q9: z.string().min(1, "This field is required"),
-    q10: z.string().min(1, "This field is required"),
+  securityInfo: z.object({
+    securities: z
+      .array(
+        z
+          .object({
+            assetType: z.string().min(1, "This field is required"),
+            addressLine1: z.string().min(1, "This field is required"),
+            addressLine2: z.string().optional(),
+            city: z.string().optional(),
+            postCode: z.string().min(1, "This field is required"),
+            ownership: z.string().min(1, "This field is required"),
+            yearsRemaining: z.string(),
+            purchasePrice: z.string().min(1, "This field is required"),
+            currentDebt: z.string().min(1, "This field is required"),
+            rentalIncome: z.string().optional(),
+            propertyType: z.string().min(1, "This field is required"),
+            description: z.string().min(1, "This field is required"),
+            estimatedValue: z.string().min(1, "This field is required"),
+            estimatedGDV: z.string().optional(),
+          })
+          .refine(
+            (data) =>
+              data.ownership === "leasehold"
+                ? data.yearsRemaining !== ""
+                : true,
+            {
+              message: "Please enter the number of years remaining",
+              path: ["yearsRemaining"],
+            }
+          )
+      )
+      .min(1, "At least one security must be added"),
+  }),
+  additionalInfo: z.object({
+    q1: z
+      .custom<UploadedFile>()
+      .refine(
+        (val): val is UploadedFile =>
+          val !== null &&
+          typeof val === "object" &&
+          "file_id" in val &&
+          "file_url" in val &&
+          "file_name" in val,
+        {
+          message: "Please upload required document",
+        }
+      ),
+    q2: z.boolean().refine((val) => val === true, {
+      message: "Please consent to credit searches",
+    }),
   }),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
 
+// Add this type to help with type safety
+type FormStep = {
+  fields: (keyof FormValues)[];
+  name: string;
+};
+
+// Define the fields that need to be validated for each step
+const formSteps: FormStep[] = [
+  {
+    name: "Agreement",
+    fields: ["agreement"],
+  },
+  {
+    name: "Product Selection",
+    fields: ["product"],
+  },
+
+  {
+    name: "Broker Information",
+    fields: ["brokerInfo"],
+  },
+  {
+    name: "Borrower Information",
+    fields: ["borrowerInfo"],
+  },
+  {
+    name: "Loan Information",
+    fields: ["loanInfo"],
+  },
+  {
+    name: "Security Information",
+    fields: ["securityInfo"],
+  },
+  {
+    name: "Additional Information",
+    fields: ["additionalInfo"],
+  },
+];
+
 export default function MultiStepForm() {
+  // Logs the form values as they change
   const [step, setStep] = useState(0);
   const router = useRouter();
   const methods = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: dummyData,
+    mode: "onSubmit",
+    defaultValues: {
+      product: "residential", // Default to first enum option
+      agreement: false, // Default to unchecked - user must check this
+      brokerInfo: {
+        brokerContactName: "",
+        brokerCompanyName: "",
+        brokerPhoneNumber: "",
+        brokerEmailAddress: "",
+        brokerFee: "",
+      },
+      borrowerInfo: {
+        borrowerCorporateName: "",
+        borrowerCompaniesHouse: "",
+        borrowerPhoneNumber: "",
+        borrowerEmailAddress: "",
+        borrowerPropertyExperience: null,
+        borrowerAssetsAndLiabilities: null,
+        borrowerCreditInfo: "",
+      },
+      loanInfo: {
+        purposeOfFunds: "",
+        backgroundStory: "",
+        netAmountRequiredDayOne: "",
+        netAmountRequiredForWorks: "",
+        ltvRequired: "",
+        loanTerm: "",
+        exitStrategy: "",
+        currentStatus: "",
+        solicitorsDetails: "",
+      },
+      securityInfo: {
+        securities: [],
+      },
+      additionalInfo: {
+        q1: null,
+        q2: false,
+      },
+    },
   });
+  console.log(methods.watch());
 
-  const onSubmit = (data: FormValues) => {
-    console.log("hello");
-    // Log the form data as an object to the console
-    console.log("Form Data:", data);
+  const validateStep = async (stepIndex: number) => {
+    const currentStep = formSteps[stepIndex];
+    if (!currentStep) return false;
 
-    // You can also format the data if needed
-    const formattedData = {
-      agreement: data.agreement,
-      product: data.product,
-      personalInfo: data.step1,
-      educationAndWork: data.step2,
-      additionalInfo: data.step3,
-    };
-    console.log("Formatted Form Data:", formattedData);
+    const result = await methods.trigger(currentStep.fields as any);
 
-    // Here you would typically send the data to an API or perform other actions
-    router.push("/success");
+    if (!result) {
+      // Show error toast for the current step
+      toast.error(`Please complete all required fields.`);
+      return false;
+    }
+
+    return true;
   };
 
-  const nextStep = (e: MouseEvent<HTMLButtonElement>) => {
+  const nextStep = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (step === 0) {
-      methods.trigger("product").then((isValid) => {
-        if (isValid) {
-          setStep(step + 1);
-        }
-      });
-    } else if (step === 1) {
-      methods.trigger("agreement").then((isValid) => {
-        if (isValid) {
-          setStep(step + 1);
-        }
-      });
-    } else {
-      methods.trigger([]).then((isValid) => {
-        if (isValid && step < 4) {
-          setStep(step + 1);
-        }
-        console.log(isValid);
-      });
+
+    const isValid = await validateStep(step);
+    if (isValid) {
+      setStep(step + 1);
     }
   };
 
@@ -118,6 +281,41 @@ export default function MultiStepForm() {
     }
   };
 
+  //  Check if the form can be submitted
+  const canSubmit = async () => {
+    // Validate all steps before final submission
+    for (let i = 0; i < formSteps.length; i++) {
+      const isStepValid = await validateStep(i);
+      if (!isStepValid) {
+        setStep(i); // Move to the first invalid step
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Modify the onSubmit handler to use the canSubmit check
+  const onSubmit = async (data: FormValues) => {
+    const isValid = await canSubmit();
+    if (!isValid) {
+      return;
+    }
+
+    console.log("Form Data:", data);
+    const formattedData = {
+      agreement: data.agreement,
+      product: data.product,
+      brokerInfo: data.brokerInfo,
+      borrowerInfo: data.borrowerInfo,
+      loanInfo: data.loanInfo,
+      securityInfo: data.securityInfo,
+      additionalInfo: data.additionalInfo,
+    };
+    console.log("Formatted Form Data:", formattedData);
+
+    router.push("/success");
+  };
+
   return (
     <FormProvider {...methods}>
       <form
@@ -125,93 +323,18 @@ export default function MultiStepForm() {
         className="max-w-2xl mx-auto p-6 space-y-8"
       >
         <h1 className="text-3xl font-bold text-center">Application Form</h1>
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4 w-full">
-            <div className="relative flex-1 flex items-center">
-              <div
-                id="indicator-1"
-                className="w-10 h-10 flex items-center justify-center bg-[#263469] text-white rounded-full transition-colors duration-300"
-              >
-                1
-              </div>
-              <div
-                id="line-1"
-                className={`absolute w-full h-1 ${
-                  step > 0 ? "bg-[#263469]" : "bg-gray-300"
-                } left-0 top-1/2 transform translate-y-[-50%] z-[-1] transition-colors duration-300`}
-              ></div>
-            </div>
+        <StepsProgressBar currentStep={step} steps={formSteps} />
 
-            <div className="relative flex-1 flex items-center">
-              <div
-                id="indicator-2"
-                className={`w-10 h-10 flex items-center justify-center ${
-                  step >= 1 ? "bg-[#263469] text-white" : "bg-gray-300"
-                } text-gray-600 rounded-full transition-colors duration-300`}
-              >
-                2
-              </div>
-              <div
-                id="line-2"
-                className={`absolute w-full h-1 ${
-                  step >= 2 ? "bg-[#263469] text-white" : "bg-gray-300"
-                }  left-0 top-1/2 transform translate-y-[-50%] z-[-1] transition-colors duration-300`}
-              ></div>
-            </div>
-            <div className="relative flex-1 flex items-center">
-              <div
-                id="indicator-3"
-                className={`w-10 h-10 flex items-center justify-center ${
-                  step >= 2 ? "bg-[#263469] text-white" : "bg-gray-300"
-                } text-gray-600 rounded-full transition-colors duration-300`}
-              >
-                3
-              </div>
-              <div
-                id="line-3"
-                className={`absolute w-full h-1 ${
-                  step > 2 ? "bg-[#263469] text-white" : "bg-gray-300"
-                }  left-0 top-1/2 transform translate-y-[-50%] z-[-1] transition-colors duration-300`}
-              ></div>
-            </div>
-            <div className="relative flex-1 flex items-center">
-              <div
-                id="indicator-3"
-                className={`w-10 h-10 flex items-center justify-center ${
-                  step >= 3 ? "bg-[#263469] text-white" : "bg-gray-300"
-                } text-gray-600 rounded-full transition-colors duration-300`}
-              >
-                4
-              </div>
-              <div
-                id="line-3"
-                className={`absolute w-full h-1 ${
-                  step > 3 ? "bg-[#263469] text-white" : "bg-gray-300"
-                }  left-0 top-1/2 transform translate-y-[-50%] z-[-1] transition-colors duration-300`}
-              ></div>
-            </div>
-
-            <div>
-              <div
-                id="indicator-4"
-                className={`w-10 h-10 flex items-center justify-center ${
-                  step === 4 ? "bg-[#263469] text-white" : "bg-gray-300"
-                }  text-gray-600 rounded-full transition-colors duration-300`}
-              >
-                5
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {step === 0 && <Products methods={methods} />}
-        {step === 1 && <Agreement methods={methods} />}
-        {step === 2 && <StepOne />}
-        {step === 3 && <StepTwo />}
-        {step === 4 && <StepThree />}
+        {step === 0 && <Agreement methods={methods} />}
+        {step === 1 && <Products methods={methods} />}
+        {step === 2 && <BrokerInformation methods={methods} />}
+        {step === 3 && <BorrowerInformation methods={methods} />}
+        {step === 4 && <LoanInformation methods={methods} />}
+        {step === 5 && <SecurityInformation methods={methods} />}
+        {step === 6 && <AdditionalInformation methods={methods} />}
 
         <div className="flex justify-between">
-          {step > 0 ? (
+          {step > 0 && (
             <Button
               type="button"
               onClick={prevStep}
@@ -220,10 +343,8 @@ export default function MultiStepForm() {
             >
               Previous
             </Button>
-          ) : (
-            <div></div>
           )}
-          {step < 4 ? (
+          {step < formSteps.length - 1 ? (
             <Button
               type="button"
               onClick={nextStep}

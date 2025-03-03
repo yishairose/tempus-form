@@ -254,7 +254,7 @@ export default function MultiStepForm() {
     const currentStep = formSteps[stepIndex];
     if (!currentStep) return false;
 
-    const result = await methods.trigger(currentStep.fields as any);
+    const result = await methods.trigger(currentStep.fields);
 
     if (!result) {
       // Show error toast for the current step

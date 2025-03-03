@@ -15,12 +15,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { formSchema, FormValues } from "../page";
+import { FormValues } from "../page";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
+import { formSchema } from "@/lib/formSchema";
 
 export function SecurityInformation({
   methods,

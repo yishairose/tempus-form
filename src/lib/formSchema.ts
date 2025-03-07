@@ -84,10 +84,20 @@ export const formSchema = z.object({
   loanInfo: z.object({
     purposeOfFunds: z.string().min(1, "This field is required"),
     backgroundStory: z.string().min(1, "This field is required"),
-    netAmountRequiredDayOne: z.string().min(1, "This field is required"),
-    netAmountRequiredForWorks: z.string().optional(),
+    netAmountRequiredDayOne: z.preprocess(
+      (val) => parseFloat(val as string),
+      z.number().min(1, "Please enter a valid amount")
+    ),
+
+    netAmountRequiredForWorks: z.preprocess(
+      (val) => (val ? parseFloat(val as string) : undefined),
+      z.number().min(0, "Please enter a valid amount").optional()
+    ),
     ltvRequired: z.string().min(1, "This field is required"),
-    loanTerm: z.string().min(1, "This field is required"),
+    loanTerm: z.preprocess(
+      (val) => parseFloat(val as string),
+      z.number().min(1, "Please enter a valid amount")
+    ),
     exitStrategy: z.string().min(1, "This field is required"),
     currentStatus: z.string().min(1, "This field is required"),
     solicitorsDetails: z.string().min(1, "This field is required"),
@@ -127,18 +137,19 @@ export const formSchema = z.object({
   }),
   additionalInfo: z.object({
     q1: z
-      .custom<UploadedFile>()
+      .custom<UploadedFile | null>()
       .refine(
         (val): val is UploadedFile =>
-          val !== null &&
-          typeof val === "object" &&
-          "file_id" in val &&
-          "file_url" in val &&
-          "file_name" in val,
+          val === null ||
+          (typeof val === "object" &&
+            "file_id" in val &&
+            "file_url" in val &&
+            "file_name" in val),
         {
           message: "Please upload required document",
         }
-      ),
+      )
+      .optional(),
     q2: z.boolean().refine((val) => val === true, {
       message: "Please consent to credit searches",
     }),

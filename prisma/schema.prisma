@@ -13,18 +13,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
+enum ProductType {
+  residential
+  commercial
+  development
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
+model Application {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Product Selection and Agreement
+  product   ProductType
+  agreement Boolean
+
+  // Broker Information
+  isBroker          Boolean
+  brokerContactName String?
+  brokerCompanyName String?
+  brokerPhoneNumber String?
+  brokerEmailAddress String?
+  brokerFee         String?
+
+  // Borrower Information
+  borrowerCorporateName      String
+  borrowerCompaniesHouse     String
+  borrowerPhoneNumber        String
+  borrowerEmailAddress       String
+  borrowerPropertyExperience Json    // Will store file details: {fileId, fileUrl, fileName}
+  borrowerAssetsAndLiabilities Json  // Will store file details: {fileId, fileUrl, fileName}
+  borrowerCreditInfo         String
+
+  // Loan Information
+  purposeOfFunds           String
+  backgroundStory          String
+  netAmountRequiredDayOne  Float
+  netAmountRequiredForWorks Float?
+  ltvRequired              String
+  loanTerm                 Int
+  exitStrategy             String
+  currentStatus            String
+  solicitorsDetails        String
+
+  // Security Information
+  securities Json          // Will store array of security objects
+
+  // Additional Information
+  additionalDocumentQ1    Json?    // Will store file details if provided
+  consentToCreditSearchQ2 Boolean
 }
+

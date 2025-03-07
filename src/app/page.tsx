@@ -85,10 +85,10 @@ export default function MultiStepForm() {
       loanInfo: {
         purposeOfFunds: "",
         backgroundStory: "",
-        netAmountRequiredDayOne: null,
-        netAmountRequiredForWorks: null,
+        netAmountRequiredDayOne: undefined,
+        netAmountRequiredForWorks: undefined,
         ltvRequired: "",
-        loanTerm: null,
+        loanTerm: undefined,
         exitStrategy: "",
         currentStatus: "",
         solicitorsDetails: "",

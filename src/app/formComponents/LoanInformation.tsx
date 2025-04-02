@@ -178,7 +178,7 @@ export function LoanInformation({
             name="loanInfo.solicitorsName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Solicitor's Name</FormLabel>
+                <FormLabel>Solicitor&apos;s Name</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter solicitor's name" {...field} />
                 </FormControl>
@@ -191,7 +191,7 @@ export function LoanInformation({
             name="loanInfo.solicitorsFirm"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Solicitor's Firm</FormLabel>
+                <FormLabel>Solicitor&apos;s Firm</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter firm name" {...field} />
                 </FormControl>
@@ -204,7 +204,7 @@ export function LoanInformation({
             name="loanInfo.solicitorsEmail"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Solicitor's Email</FormLabel>
+                <FormLabel>Solicitor&apos;s Email</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
@@ -221,7 +221,7 @@ export function LoanInformation({
             name="loanInfo.solicitorsPhone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Solicitor's Phone Number</FormLabel>
+                <FormLabel>Solicitor&apos;s Phone Number</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter phone number" {...field} />
                 </FormControl>

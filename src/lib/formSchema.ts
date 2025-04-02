@@ -49,58 +49,62 @@ export const formSchema = z.object({
     }),
   borrowerInfo: z.object({
     borrowerCorporateName: z.string().min(1, "This field is required"),
-    borrowerCompaniesHouse: z.string().min(1, "This field is required"),
-    borrowerPhoneNumber: z.string().min(1, "This field is required"),
+    borrowerCompanyNumber: z
+      .string()
+      .min(1, { message: "Phone number is required" })
+      .regex(/^\+?[0-9]{10,15}$/, {
+        message: "Please enter a valid phone number",
+      }),
+    borrowerPhoneNumber: z
+      .string()
+      .min(1, { message: "Phone number is required" })
+      .regex(/^\+?[0-9]{10,15}$/, {
+        message: "Please enter a valid phone number",
+      }),
     borrowerEmailAddress: z.string().min(1, "This field is required"),
-    borrowerPropertyExperience: z
-      .custom<UploadedFile>()
-      .refine(
-        (val): val is UploadedFile =>
-          val !== null &&
-          typeof val === "object" &&
-          "file_id" in val &&
-          "file_url" in val &&
-          "file_name" in val,
-        {
-          message: "Please upload required document",
-        }
-      ),
-    borrowerAssetsAndLiabilities: z
-      .custom<UploadedFile>()
-      .refine(
-        (val): val is UploadedFile =>
-          val !== null &&
-          typeof val === "object" &&
-          "file_id" in val &&
-          "file_url" in val &&
-          "file_name" in val,
-        {
-          message: "Please upload required document",
-        }
-      ),
+    borrowerPropertyExperience: z.custom<UploadedFile>().optional(),
+    borrowerAssetsAndLiabilities: z.custom<UploadedFile>().optional(),
+    // .refine(
+    //   (val): val is UploadedFile =>
+    //     val !== null &&
+    //     typeof val === "object" &&
+    //     "file_id" in val &&
+    //     "file_url" in val &&
+    //     "file_name" in val,
+    //   {
+    //     message: "Please upload required document",
+    //   }
+    // )
 
-    borrowerCreditInfo: z.string().min(1, "This field is required"),
+    borrowerCreditInfo: z.string().optional(),
   }),
   loanInfo: z.object({
     purposeOfFunds: z.string().min(1, "This field is required"),
-    backgroundStory: z.string().min(1, "This field is required"),
+    backgroundStory: z.string().optional(),
     netAmountRequiredDayOne: z.preprocess(
       (val) => parseFloat(val as string),
-      z.number().min(1, "Please enter a valid amount")
+      z.number().min(0, "Please enter a valid amount")
     ),
 
     netAmountRequiredForWorks: z.preprocess(
       (val) => (val ? parseFloat(val as string) : undefined),
       z.number().min(0, "Please enter a valid amount").optional()
     ),
-    ltvRequired: z.string().min(1, "This field is required"),
-    loanTerm: z.preprocess(
-      (val) => parseFloat(val as string),
-      z.number().min(1, "Please enter a valid amount")
-    ),
+    ltvRequired: z.coerce
+      .number()
+      .min(1, "Please enter a valid amount")
+      .max(100, "Please enter an amount smaller than 100%"),
+    loanTerm: z.coerce.number().min(1, "Please enter a valid amount"),
     exitStrategy: z.string().min(1, "This field is required"),
-    currentStatus: z.string().min(1, "This field is required"),
-    solicitorsDetails: z.string().min(1, "This field is required"),
+    solicitorsName: z.string().optional(),
+    solicitorsFirm: z.string().optional(),
+    solicitorsEmail: z.string().optional(),
+    solicitorsPhone: z
+      .string()
+      // .regex(/^\+?[0-9]{10,15}$/, {
+      //   message: "Please enter a valid phone number",
+      // })
+      .optional(),
   }),
   securityInfo: z.object({
     securities: z
@@ -117,8 +121,14 @@ export const formSchema = z.object({
             purchasePrice: z.string().min(1, "This field is required"),
             currentDebt: z.string().min(1, "This field is required"),
             rentalIncome: z.string().optional(),
-            propertyType: z.string().min(1, "This field is required"),
-            description: z.string().min(1, "This field is required"),
+            description: z.object({
+              propertySize: z.string().optional(),
+              bedrooms: z.string().optional(),
+              bathrooms: z.string().optional(),
+              parking: z.string().optional(),
+              parkingSpaces: z.string().optional(),
+              outDoorSpaces: z.array(z.string()).optional(),
+            }),
             estimatedValue: z.string().min(1, "This field is required"),
             estimatedGDV: z.string().optional(),
           })
@@ -138,17 +148,17 @@ export const formSchema = z.object({
   additionalInfo: z.object({
     q1: z
       .custom<UploadedFile | null>()
-      .refine(
-        (val): val is UploadedFile =>
-          val === null ||
-          (typeof val === "object" &&
-            "file_id" in val &&
-            "file_url" in val &&
-            "file_name" in val),
-        {
-          message: "Please upload required document",
-        }
-      )
+      // .refine(
+      //   (val): val is UploadedFile =>
+      //     val === null ||
+      //     (typeof val === "object" &&
+      //       "file_id" in val &&
+      //       "file_url" in val &&
+      //       "file_name" in val),
+      //   {
+      //     message: "Please upload required document",
+      //   }
+      // )
       .optional(),
     q2: z.boolean().refine((val) => val === true, {
       message: "Please consent to credit searches",

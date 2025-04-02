@@ -1,13 +1,9 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
+import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { FormValues } from "../page";
+import RequiredFormLabel from "@/components/RequiredFormLabel";
 
 function Agreement({ methods }: { methods: UseFormReturn<FormValues> }) {
   return (
@@ -41,7 +37,9 @@ function Agreement({ methods }: { methods: UseFormReturn<FormValues> }) {
                 />
               </FormControl>
               <div className="grid gap-1.5 leading-none">
-                <FormLabel> Accept terms and conditions</FormLabel>
+                <RequiredFormLabel required>
+                  Accept terms and conditions
+                </RequiredFormLabel>
                 <p className="text-sm text-muted-foreground">
                   You agree to our Terms of Service and Privacy Policy.
                 </p>

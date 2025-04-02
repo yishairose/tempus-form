@@ -127,7 +127,7 @@ export const formSchema = z.object({
               bathrooms: z.string().optional(),
               parking: z.string().optional(),
               parkingSpaces: z.string().optional(),
-              outDoorSpaces: z.array(z.string()).optional(),
+              outDoorSpaces: z.array(z.string()),
             }),
             estimatedValue: z.string().min(1, "This field is required"),
             estimatedGDV: z.string().optional(),

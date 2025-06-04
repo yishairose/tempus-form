@@ -3,143 +3,151 @@ import emailjs from "@emailjs/browser";
 // Initialize EmailJS with your public key
 emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "");
 
-export const sendEmail = async (formData: any) => {
+interface EmailResponse {
+  success: boolean;
+  error?: string;
+}
+
+interface TemplateParams {
+  to_email: string;
+  product: string;
+  broker_info: {
+    is_broker: boolean;
+    contact_name?: string;
+    company_name?: string;
+    phone_number?: string;
+    email_address?: string;
+    fee?: string;
+  };
+  borrower_info: {
+    corporate_name: string;
+    company_number: string;
+    phone_number: string;
+    email_address: string;
+    property_experience?: string;
+    assets_and_liabilities?: string;
+    credit_info?: string;
+  };
+  loan_info: {
+    purpose_of_funds: string;
+    background_story: string;
+    net_amount_required_day_one: string;
+    net_amount_required_for_works: string;
+    ltv_required: string;
+    loan_term: string;
+    exit_strategy: string;
+    solicitors_name: string;
+    solicitors_firm: string;
+    solicitors_email: string;
+    solicitors_phone: string;
+  };
+  security_info: {
+    securities: Array<{
+      asset_type: string;
+      address_line1: string;
+      address_line2?: string;
+      city?: string;
+      post_code: string;
+      ownership: string;
+      years_remaining?: string;
+      purchase_price: string;
+      current_debt: string;
+      rental_income?: string;
+      description: {
+        property_details: string;
+      };
+      estimated_value: string;
+      estimated_gdv?: string;
+    }>;
+  };
+  additional_info: {
+    documents?: Array<{
+      file_name: string;
+      file_url: string;
+    }>;
+    credit_consent: boolean;
+  };
+}
+
+export async function sendEmail(data: TemplateParams): Promise<EmailResponse> {
   try {
-    // Format securities as plain text
-    const securitiesText =
-      formData.securityInfo?.securities
-        ?.map(
-          (security: any, index: number) => `
-Security ${index + 1}:
-Asset Type: ${security.assetType || "N/A"}
-Address: ${
-            [
-              security.addressLine1,
-              security.addressLine2,
-              security.city,
-              security.postCode,
-            ]
-              .filter(Boolean)
-              .join(", ") || "N/A"
-          }
-Ownership: ${security.ownership || "N/A"}
-Years Remaining: ${
-            security.ownership === "leasehold" ? security.yearsRemaining : "N/A"
-          }
-Purchase Price: ${security.purchasePrice ? `£${security.purchasePrice}` : "N/A"}
-Current Debt: ${security.currentDebt ? `£${security.currentDebt}` : "N/A"}
-Rental Income: ${security.rentalIncome ? `£${security.rentalIncome}` : "N/A"}
-Estimated Value: ${
-            security.estimatedValue ? `£${security.estimatedValue}` : "N/A"
-          }
-Estimated GDV: ${security.estimatedGDV ? `£${security.estimatedGDV}` : "N/A"}
-Property Details: ${security.description?.propertyDetails || "N/A"}
--------------------`
-        )
-        .join("\n\n") || "No securities provided";
-
-    // Get file URL from API
-    const getFileUrl = async (fileId: string) => {
-      try {
-        const response = await fetch(`/api/files/${fileId}`);
-        if (!response.ok) {
-          throw new Error("Failed to get file URL");
-        }
-        const data = await response.json();
-        return data.url;
-      } catch (error) {
-        console.error("Error getting file URL:", error);
-        return null;
-      }
-    };
-
-    // Format attachments with URLs
-    const formatAttachment = async (file: any) => {
-      if (!file) return "N/A";
-      const url = await getFileUrl(file.file_id);
-      return url ? `${file.file_name} (${url})` : file.file_name;
-    };
-
-    const formatAttachments = async (files: any[]) => {
-      if (!files || files.length === 0) return "N/A";
-      const formattedFiles = await Promise.all(
-        files.map((file) => formatAttachment(file))
-      );
-      return formattedFiles.join("\n");
-    };
-
-    // Format the data for EmailJS template
     const templateParams = {
-      product: formData.product || "N/A",
-      agreement: formData.agreement ? "Yes" : "No",
-
-      // Broker Information
-      broker_is_broker: formData.brokerInfo?.isBroker ? "Yes" : "No",
-      broker_contact_name: formData.brokerInfo?.brokerContactName || "N/A",
-      broker_company_name: formData.brokerInfo?.brokerCompanyName || "N/A",
-      broker_phone: formData.brokerInfo?.brokerPhoneNumber || "N/A",
-      broker_email: formData.brokerInfo?.brokerEmailAddress || "N/A",
-      broker_fee: formData.brokerInfo?.brokerFee || "N/A",
-
-      // Borrower Information
-      borrower_corporate_name:
-        formData.borrowerInfo?.borrowerCorporateName || "N/A",
-      borrower_company_number:
-        formData.borrowerInfo?.borrowerCompanyNumber || "N/A",
-      borrower_phone: formData.borrowerInfo?.borrowerPhoneNumber || "N/A",
-      borrower_email: formData.borrowerInfo?.borrowerEmailAddress || "N/A",
-      borrower_credit_info: formData.borrowerInfo?.borrowerCreditInfo || "N/A",
-
-      // Loan Information
-      purpose_of_funds: formData.loanInfo?.purposeOfFunds || "N/A",
-      background_story: formData.loanInfo?.backgroundStory || "N/A",
-      net_amount_day_one: formData.loanInfo?.netAmountRequiredDayOne
-        ? `£${formData.loanInfo.netAmountRequiredDayOne}`
-        : "N/A",
-      net_amount_works: formData.loanInfo?.netAmountRequiredForWorks
-        ? `£${formData.loanInfo.netAmountRequiredForWorks}`
-        : "N/A",
-      ltv_required: formData.loanInfo?.ltvRequired
-        ? `${formData.loanInfo.ltvRequired}%`
-        : "N/A",
-      loan_term: formData.loanInfo?.loanTerm
-        ? `${formData.loanInfo.loanTerm} months`
-        : "N/A",
-      exit_strategy: formData.loanInfo?.exitStrategy || "N/A",
-
-      // Solicitor Information
-      solicitors_name: formData.loanInfo?.solicitorsName || "N/A",
-      solicitors_firm: formData.loanInfo?.solicitorsFirm || "N/A",
-      solicitors_email: formData.loanInfo?.solicitorsEmail || "N/A",
-      solicitors_phone: formData.loanInfo?.solicitorsPhone || "N/A",
-
-      // Security Information
-      securities: securitiesText,
-
-      // Additional Information
-      credit_search_consent: formData.additionalInfo?.q2 ? "Yes" : "No",
-
-      // Attachments with URLs
-      property_experience: await formatAttachment(
-        formData.borrowerInfo?.borrowerPropertyExperience
-      ),
-      assets_liabilities: await formatAttachment(
-        formData.borrowerInfo?.borrowerAssetsAndLiabilities
-      ),
-      additional_documents: await formatAttachments(
-        formData.additionalInfo?.q1 || []
-      ),
+      to_email: process.env.NEXT_PUBLIC_RECIPIENT_EMAIL,
+      product: data.product,
+      broker_info: {
+        is_broker: data.broker_info.is_broker,
+        contact_name: data.broker_info.contact_name || "",
+        company_name: data.broker_info.company_name || "",
+        phone_number: data.broker_info.phone_number || "",
+        email_address: data.broker_info.email_address || "",
+        fee: data.broker_info.fee || "",
+      },
+      borrower_info: {
+        corporate_name: data.borrower_info.corporate_name,
+        company_number: data.borrower_info.company_number,
+        phone_number: data.borrower_info.phone_number,
+        email_address: data.borrower_info.email_address,
+        property_experience: data.borrower_info.property_experience || "",
+        assets_and_liabilities: data.borrower_info.assets_and_liabilities || "",
+        credit_info: data.borrower_info.credit_info || "",
+      },
+      loan_info: {
+        purpose_of_funds: data.loan_info.purpose_of_funds,
+        background_story: data.loan_info.background_story,
+        net_amount_required_day_one: data.loan_info.net_amount_required_day_one,
+        net_amount_required_for_works:
+          data.loan_info.net_amount_required_for_works,
+        ltv_required: data.loan_info.ltv_required,
+        loan_term: data.loan_info.loan_term,
+        exit_strategy: data.loan_info.exit_strategy,
+        solicitors_name: data.loan_info.solicitors_name,
+        solicitors_firm: data.loan_info.solicitors_firm,
+        solicitors_email: data.loan_info.solicitors_email,
+        solicitors_phone: data.loan_info.solicitors_phone,
+      },
+      security_info: {
+        securities: data.security_info.securities.map((security) => ({
+          asset_type: security.asset_type,
+          address_line1: security.address_line1,
+          address_line2: security.address_line2 || "",
+          city: security.city || "",
+          post_code: security.post_code,
+          ownership: security.ownership,
+          years_remaining: security.years_remaining || "",
+          purchase_price: security.purchase_price,
+          current_debt: security.current_debt,
+          rental_income: security.rental_income || "",
+          description: {
+            property_details: security.description.property_details,
+          },
+          estimated_value: security.estimated_value,
+          estimated_gdv: security.estimated_gdv || "",
+        })),
+      },
+      additional_info: {
+        documents:
+          data.additional_info.documents?.map((doc) => ({
+            file_name: doc.file_name,
+            file_url: doc.file_url,
+          })) || [],
+        credit_consent: data.additional_info.credit_consent,
+      },
     };
 
-    const response = await emailjs.send(
+    await emailjs.send(
       process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "",
       process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "",
       templateParams
     );
 
-    return { success: true, data: response };
+    return {
+      success: true,
+    };
   } catch (error) {
-    console.error("EmailJS error:", error);
-    return { success: false, error };
+    console.error("Email sending failed:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to send email",
+    };
   }
-};
+}

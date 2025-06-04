@@ -1,13 +1,6 @@
 import { useFieldArray, useFormContext, UseFormReturn } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   FormControl,
   FormDescription,
   FormField,
@@ -17,23 +10,12 @@ import {
 } from "@/components/ui/form";
 import { FormValues } from "../page";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Plus,
-  Trash2,
-  Home,
-  Car,
-  TreesIcon as Tree,
-  ChevronsUpDown,
-  Check,
-} from "lucide-react";
+import { Plus, Trash2, Home, ChevronsUpDown, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { formSchema } from "@/lib/formSchema";
 import RequiredFormLabel from "@/components/RequiredFormLabel";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-
 import {
   Popover,
   PopoverContent,
@@ -65,53 +47,14 @@ export function SecurityInformation({
   });
 
   const assetTypeOptions = [
-    { label: "Residential - House", value: "residential-house" },
-    { label: "Residential - HMO", value: "residential-hmo" },
     {
-      label: "Residential - Flat(s) - Purpose Built",
-      value: "residential-flats-purpose-built",
+      label: "Residential - House",
+      value: "residential-house",
     },
     {
-      label: "Residential - Flat(s) - On Commercial",
-      value: "residential-flats-on-commercial",
+      label: "Residential - Flat",
+      value: "residential-flat",
     },
-    {
-      label: "Semi Commercial - Main Resi",
-      value: "semi-commercial-main-resi",
-    },
-    {
-      label: "Semi Commercial - Main Comm",
-      value: "semi-commercial-main-comm",
-    },
-    { label: "Commercial - Retail", value: "commercial-retail" },
-    { label: "Commercial - Leisure", value: "commercial-leisure" },
-    { label: "Commercial - Office", value: "commercial-office" },
-    { label: "Commercial - Healthcare", value: "commercial-healthcare" },
-    { label: "Industrial", value: "industrial" },
-    {
-      label: "Residential Development - Light",
-      value: "residential-development-light",
-    },
-    {
-      label: "Residential Development - Heavy",
-      value: "residential-development-heavy",
-    },
-    {
-      label: "Commercial Development - Light",
-      value: "commercial-development-light",
-    },
-    {
-      label: "Commercial Development - Heavy",
-      value: "commercial-development-heavy",
-    },
-    { label: "Land - Without Planning", value: "land-without-planning" },
-    { label: "Land - With Planning", value: "land-with-planning" },
-    {
-      label: "Residential House - with planning",
-      value: "residential-house-with-planning",
-    },
-    { label: "Freehold Only excl Leases", value: "freehold-only-excl-leases" },
-    { label: "Commercial - Hotel", value: "commercial-hotel" },
     {
       label: "Residential - House - Converted into Flats",
       value: "residential-house-converted-into-flats",
@@ -121,29 +64,6 @@ export function SecurityInformation({
       value: "residential-flats-commercial-conversion",
     },
     { label: "Commercial - Other", value: "commercial-other" },
-  ] as const;
-
-  const outDoorItems = [
-    {
-      id: "garden",
-      label: "Garden",
-      describtion: "Property has garden",
-    },
-    {
-      id: "patio/terrace",
-      label: "Patio/Terrace",
-      describtion: "Property has a patio or terrace",
-    },
-    {
-      id: "balcony",
-      label: "Balcony",
-      description: "Property has a balcony",
-    },
-    {
-      id: "communal_garden",
-      label: "Communal Garden",
-      description: "Access to communal outdoor space",
-    },
   ] as const;
 
   const addSecurity = () => {

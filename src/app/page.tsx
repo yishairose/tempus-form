@@ -139,23 +139,79 @@ export default function MultiStepForm() {
     }
   };
 
-  //  Check if the form can be submitted
-  const canSubmit = async () => {
-    // Validate all steps before final submission
-    for (let i = 0; i < formSteps.length; i++) {
-      const isStepValid = await validateStep(i);
-      if (!isStepValid) {
-        setCurrentStep(i); // Move to the first invalid step
-        return false;
-      }
-    }
-    return true;
-  };
-
   const onSubmit = async (data: FormValues) => {
     try {
       setIsSubmitting(true);
-      const result = await sendEmail(data);
+      const transformedData = {
+        to_email: process.env.NEXT_PUBLIC_RECIPIENT_EMAIL || "",
+        product: data.product,
+        broker_info: {
+          is_broker: data.brokerInfo.isBroker,
+          contact_name: data.brokerInfo.brokerContactName,
+          company_name: data.brokerInfo.brokerCompanyName,
+          phone_number: data.brokerInfo.brokerPhoneNumber,
+          email_address: data.brokerInfo.brokerEmailAddress,
+          fee: data.brokerInfo.brokerFee,
+        },
+        borrower_info: {
+          corporate_name: data.borrowerInfo.borrowerCorporateName,
+          company_number: data.borrowerInfo.borrowerCompanyNumber,
+          phone_number: data.borrowerInfo.borrowerPhoneNumber,
+          email_address: data.borrowerInfo.borrowerEmailAddress,
+          property_experience:
+            data.borrowerInfo.borrowerPropertyExperience?.file_name,
+          assets_and_liabilities:
+            data.borrowerInfo.borrowerAssetsAndLiabilities?.file_name,
+          credit_info: data.borrowerInfo.borrowerCreditInfo,
+        },
+        loan_info: {
+          purpose_of_funds: data.loanInfo.purposeOfFunds,
+          background_story: data.loanInfo.backgroundStory || "",
+          net_amount_required_day_one:
+            data.loanInfo.netAmountRequiredDayOne.toString(),
+          net_amount_required_for_works:
+            data.loanInfo.netAmountRequiredForWorks?.toString() || "",
+          ltv_required: data.loanInfo.ltvRequired.toString(),
+          loan_term: data.loanInfo.loanTerm.toString(),
+          exit_strategy: data.loanInfo.exitStrategy,
+          solicitors_name: data.loanInfo.solicitorsName || "",
+          solicitors_firm: data.loanInfo.solicitorsFirm || "",
+          solicitors_email: data.loanInfo.solicitorsEmail || "",
+          solicitors_phone: data.loanInfo.solicitorsPhone || "",
+        },
+        security_info: {
+          securities: data.securityInfo.securities.map((security) => ({
+            asset_type: security.assetType,
+            address_line1: security.addressLine1,
+            address_line2: security.addressLine2 || "",
+            city: security.city || "",
+            post_code: security.postCode,
+            ownership: security.ownership,
+            years_remaining: security.yearsRemaining?.toString() || "",
+            purchase_price: security.purchasePrice.toString(),
+            current_debt: security.currentDebt.toString(),
+            rental_income: security.rentalIncome?.toString() || "",
+            description: {
+              property_details: security.description.propertyDetails,
+            },
+            estimated_value: security.estimatedValue.toString(),
+            estimated_gdv: security.estimatedGDV?.toString() || "",
+          })),
+        },
+        additional_info: {
+          documents:
+            data.additionalInfo.q1
+              ?.filter(
+                (file): file is NonNullable<typeof file> => file !== null
+              )
+              .map((file) => ({
+                file_name: file.file_name,
+                file_url: file.file_url,
+              })) || [],
+          credit_consent: data.additionalInfo.q2,
+        },
+      };
+      const result = await sendEmail(transformedData);
       if (result.success) {
         toast.success("Form submitted successfully!");
         router.push("/success");

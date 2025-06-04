@@ -47,6 +47,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Textarea } from "@/components/ui/textarea";
 
 export function SecurityInformation({
   methods,
@@ -158,12 +159,7 @@ export function SecurityInformation({
       currentDebt: "",
       rentalIncome: "",
       description: {
-        propertySize: "",
-        bedrooms: "",
-        bathrooms: "",
-        parking: "",
-        parkingSpaces: "",
-        outDoorSpaces: [],
+        propertyDetails: "",
       },
       estimatedValue: "",
       estimatedGDV: "",
@@ -176,8 +172,7 @@ export function SecurityInformation({
         <Button
           type="button"
           onClick={addSecurity}
-          variant="outline"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white font-semibold shadow-md"
         >
           <Plus className="h-4 w-4" />
           Add Security
@@ -197,9 +192,7 @@ export function SecurityInformation({
           <Button
             type="button"
             onClick={addSecurity}
-            variant="outline"
-            size="sm"
-            className="mt-2"
+            className="mt-2 bg-primary hover:bg-primary/90 text-white font-semibold shadow-md"
           >
             <Plus className="mr-2 h-4 w-4" />
             Add Your First Security
@@ -208,17 +201,22 @@ export function SecurityInformation({
       )}
       {fields.map((field, index) => (
         <div key={field.id}>
-          <h3 className="text-lg">Security #{index + 1}</h3>
-          <Button
-            type="button"
-            onClick={() => remove(index)}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-            <span className="sr-only">Remove security</span>
-          </Button>
+          <div className="flex items-center justify-between mb-6 bg-muted/50 p-4 rounded-lg border">
+            <h3 className="text-2xl font-bold text-primary flex items-center gap-2">
+              <Home className="h-6 w-6" />
+              Security #{index + 1}
+            </h3>
+            <Button
+              type="button"
+              onClick={() => remove(index)}
+              variant="destructive"
+              size="sm"
+              className="h-8 px-3 flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-medium shadow-sm"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>Remove Security</span>
+            </Button>
+          </div>
           <div>
             <div className="space-y-4">
               <FormField
@@ -505,257 +503,42 @@ export function SecurityInformation({
               <div className="space-y-6">
                 <FormField
                   control={methods.control}
-                  name={`securityInfo.securities.${index}.description.propertySize`}
+                  name={`securityInfo.securities.${index}.description.propertyDetails`}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        {" "}
-                        <div className="flex items-center gap-2">
-                          <Home className="h-5 w-5 text-muted-foreground" />
-                          <Label
-                            htmlFor="property-size"
-                            className="text-base font-medium"
-                          >
-                            Property Size
-                          </Label>
-                        </div>
-                      </FormLabel>
+                      <FormLabel>Property Details</FormLabel>
                       <FormControl>
-                        <Input
+                        <Textarea
                           {...field}
-                          placeholder="Enter size"
-                          type="number"
+                          placeholder="Please provide details about the property including size, number of bedrooms/bathrooms, parking, outdoor spaces, and any other relevant features."
+                          rows={6}
                         />
                       </FormControl>
                       <FormDescription>
-                        Please enter size in m&sup2;
+                        Include all relevant details about the property such as
+                        size, layout, features, and condition.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
-                {/* Bedrooms & Bathrooms */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={methods.control}
-                    name={`securityInfo.securities.${index}.description.bedrooms`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Bedrooms</FormLabel>
-                        <FormControl>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <SelectTrigger id="bedrooms">
-                              <SelectValue placeholder="Select number of bedrooms" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="studio">Studio</SelectItem>
-                              <SelectItem value="1">1 Bedroom</SelectItem>
-                              <SelectItem value="2">2 Bedrooms</SelectItem>
-                              <SelectItem value="3">3 Bedrooms</SelectItem>
-                              <SelectItem value="4">4 Bedrooms</SelectItem>
-                              <SelectItem value="5">5 Bedrooms</SelectItem>
-                              <SelectItem value="6+">6+ Bedrooms</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={methods.control}
-                    name={`securityInfo.securities.${index}.description.bathrooms`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Bathrooms</FormLabel>
-                        <FormControl>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <SelectTrigger id="bathrooms">
-                              <SelectValue placeholder="Select number of bathrooms" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="1">1 Bathroom</SelectItem>
-                              <SelectItem value="1.5">1.5 Bathrooms</SelectItem>
-                              <SelectItem value="2">2 Bathrooms</SelectItem>
-                              <SelectItem value="2.5">2.5 Bathrooms</SelectItem>
-                              <SelectItem value="3">3 Bathrooms</SelectItem>
-                              <SelectItem value="3.5">3.5 Bathrooms</SelectItem>
-                              <SelectItem value="4+">4+ Bathrooms</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Parking */}
-                <div className="space-y-3">
-                  <FormField
-                    control={methods.control}
-                    name={`securityInfo.securities.${index}.description.parking`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          <div className="flex items-center gap-2">
-                            <Car className="h-5 w-5 text-muted-foreground" />
-                            <Label className="text-base font-medium">
-                              Parking
-                            </Label>
-                          </div>
-                        </FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            defaultValue={field.value}
-                            onValueChange={field.onChange}
-                            className="grid grid-cols-1 md:grid-cols-2 gap-2"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="garage" id="garage" />
-                              <Label htmlFor="garage">Garage</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="driveway" id="driveway" />
-                              <Label htmlFor="driveway">Driveway</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="street" id="street" />
-                              <Label htmlFor="street">Street Parking</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="none" id="none" />
-                              <Label htmlFor="none">No Parking</Label>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={methods.control}
-                    name={`securityInfo.securities.${index}.description.parkingSpaces`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Parking Spaces</FormLabel>
-                        <FormControl>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <SelectTrigger id="parking-spaces" className="mt-1">
-                              <SelectValue placeholder="Select spaces" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="1">1 Space</SelectItem>
-                              <SelectItem value="2">2 Spaces</SelectItem>
-                              <SelectItem value="3">3 Spaces</SelectItem>
-                              <SelectItem value="4+">4+ Spaces</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Garden/Outdoor Space */}
-                <div className="space-y-3">
-                  <FormField
-                    control={methods.control}
-                    name={`securityInfo.securities.${index}.description.outDoorSpaces`}
-                    render={({}) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center space-x-2">
-                          <Tree className="h-5 w-5 text-muted-foreground" />
-                          <Label className="text-base font-medium">
-                            Outdoor Space
-                          </Label>
-                        </FormLabel>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {outDoorItems.map((item) => (
-                            <FormField
-                              key={item.id}
-                              control={methods.control}
-                              name={`securityInfo.securities.${index}.description.outDoorSpaces`}
-                              render={({ field }) => {
-                                return (
-                                  <FormItem
-                                    key={item.id}
-                                    className="flex flex-row items-start space-x-3 space-y-0"
-                                  >
-                                    <FormControl>
-                                      <Checkbox
-                                        checked={field.value?.includes(item.id)}
-                                        onCheckedChange={(checked) => {
-                                          return checked
-                                            ? field.onChange([
-                                                ...field.value,
-                                                item.id,
-                                              ])
-                                            : field.onChange(
-                                                field.value?.filter(
-                                                  (value) => value !== item.id
-                                                )
-                                              );
-                                        }}
-                                      />
-                                    </FormControl>
-                                    <FormLabel className="text-sm font-normal">
-                                      {item.label}
-                                    </FormLabel>
-                                  </FormItem>
-                                );
-                              }}
-                            />
-                          ))}
-                        </div>
-
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Additional Features
-                <div className="space-y-2">
-                  <Label className="text-base font-medium">
-                    Additional Features
-                  </Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="furnished" />
-                      <Label htmlFor="furnished">Furnished</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="pets-allowed" />
-                      <Label htmlFor="pets-allowed">Pets Allowed</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="wheelchair-access" />
-                      <Label htmlFor="wheelchair-access">
-                        Wheelchair Access
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="epc" />
-                      <Label htmlFor="epc">EPC Certificate</Label>
-                    </div>
-                  </div>
-                </div> */}
               </div>
             </div>
           </div>
         </div>
       ))}
+      {fields.length > 0 && (
+        <div className="flex justify-center mt-8">
+          <Button
+            type="button"
+            onClick={addSecurity}
+            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white font-semibold shadow-md px-8 py-6 text-lg"
+          >
+            <Plus className="h-5 w-5" />
+            Add Another Security
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

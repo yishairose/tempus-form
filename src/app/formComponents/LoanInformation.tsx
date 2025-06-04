@@ -163,8 +163,11 @@ export function LoanInformation({
             <FormItem>
               <RequiredFormLabel required>Exit strategy?</RequiredFormLabel>
               <FormControl>
-                <Input {...field} />
+                <Textarea rows={7} {...field} />
               </FormControl>
+              <FormDescription>
+                Please elaborate on how you are planning to exit this loan.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

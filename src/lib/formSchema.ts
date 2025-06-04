@@ -49,12 +49,7 @@ export const formSchema = z.object({
     }),
   borrowerInfo: z.object({
     borrowerCorporateName: z.string().min(1, "This field is required"),
-    borrowerCompanyNumber: z
-      .string()
-      .min(1, { message: "Phone number is required" })
-      .regex(/^\+?[0-9]{10,15}$/, {
-        message: "Please enter a valid phone number",
-      }),
+    borrowerCompanyNumber: z.string().min(1, "This field is required"),
     borrowerPhoneNumber: z
       .string()
       .min(1, { message: "Phone number is required" })
@@ -83,7 +78,9 @@ export const formSchema = z.object({
     backgroundStory: z.string().optional(),
     netAmountRequiredDayOne: z.preprocess(
       (val) => parseFloat(val as string),
-      z.number().min(0, "Please enter a valid amount")
+      z
+        .number()
+        .min(1, "Please enter a valid amount. Amount must be greater than 0")
     ),
 
     netAmountRequiredForWorks: z.preprocess(
@@ -122,12 +119,10 @@ export const formSchema = z.object({
             currentDebt: z.string().min(1, "This field is required"),
             rentalIncome: z.string().optional(),
             description: z.object({
-              propertySize: z.string().optional(),
-              bedrooms: z.string().optional(),
-              bathrooms: z.string().optional(),
-              parking: z.string().optional(),
-              parkingSpaces: z.string().optional(),
-              outDoorSpaces: z.array(z.string()),
+              propertyDetails: z
+                .string()
+                .min(1, "Please provide property details"),
+              documents: z.array(z.custom<UploadedFile>()).optional(),
             }),
             estimatedValue: z.string().min(1, "This field is required"),
             estimatedGDV: z.string().optional(),
@@ -146,20 +141,7 @@ export const formSchema = z.object({
       .min(1, "At least one security must be added"),
   }),
   additionalInfo: z.object({
-    q1: z
-      .custom<UploadedFile | null>()
-      // .refine(
-      //   (val): val is UploadedFile =>
-      //     val === null ||
-      //     (typeof val === "object" &&
-      //       "file_id" in val &&
-      //       "file_url" in val &&
-      //       "file_name" in val),
-      //   {
-      //     message: "Please upload required document",
-      //   }
-      // )
-      .optional(),
+    q1: z.array(z.custom<UploadedFile>()).optional(),
     q2: z.boolean().refine((val) => val === true, {
       message: "Please consent to credit searches",
     }),

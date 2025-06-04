@@ -13,9 +13,10 @@ import Products from "./formComponents/Prodcuts";
 import { SecurityInformation } from "./formComponents/SecurityInformation";
 import { AdditionalInformation } from "./formComponents/AdditionalInformation";
 import { StepsProgressBar } from "@/components/StepsProgressBar";
-
+import { Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { formSchema } from "@/lib/formSchema";
+import { sendEmail } from "@/lib/emailjs";
 
 export type FormValues = z.infer<typeof formSchema>;
 
@@ -57,8 +58,8 @@ const formSteps: FormStep[] = [
 ];
 
 export default function MultiStepForm() {
-  // Logs the form values as they change
-  const [step, setStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const methods = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -67,6 +68,7 @@ export default function MultiStepForm() {
       product: "residential", // Default to first enum option
       agreement: false, // Default to unchecked - user must check this
       brokerInfo: {
+        isBroker: false,
         brokerContactName: "",
         brokerCompanyName: "",
         brokerPhoneNumber: "",
@@ -99,7 +101,7 @@ export default function MultiStepForm() {
         securities: [],
       },
       additionalInfo: {
-        q1: null,
+        q1: [],
         q2: false,
       },
     },
@@ -124,16 +126,16 @@ export default function MultiStepForm() {
   const nextStep = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    const isValid = await validateStep(step);
+    const isValid = await validateStep(currentStep);
     if (isValid) {
-      setStep(step + 1);
+      setCurrentStep(currentStep + 1);
     }
   };
 
   const prevStep = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (step > 0) {
-      setStep(step - 1);
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
@@ -143,81 +145,79 @@ export default function MultiStepForm() {
     for (let i = 0; i < formSteps.length; i++) {
       const isStepValid = await validateStep(i);
       if (!isStepValid) {
-        setStep(i); // Move to the first invalid step
+        setCurrentStep(i); // Move to the first invalid step
         return false;
       }
     }
     return true;
   };
 
-  // Modify the onSubmit handler to use the canSubmit check
   const onSubmit = async (data: FormValues) => {
-    const isValid = await canSubmit();
-    if (!isValid) {
-      return;
+    try {
+      setIsSubmitting(true);
+      const result = await sendEmail(data);
+      if (result.success) {
+        toast.success("Form submitted successfully!");
+        router.push("/success");
+      } else {
+        toast.error(result.error || "Failed to submit form");
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An error occurred while submitting the form";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    console.log("Form Data:", data);
-    const formattedData = {
-      agreement: data.agreement,
-      product: data.product,
-      brokerInfo: data.brokerInfo,
-      borrowerInfo: data.borrowerInfo,
-      loanInfo: data.loanInfo,
-      securityInfo: data.securityInfo,
-      additionalInfo: data.additionalInfo,
-    };
-    console.log("Formatted Form Data:", formattedData);
-
-    router.push("/success");
   };
 
   return (
-    <FormProvider {...methods}>
-      <form
-        onSubmit={methods.handleSubmit(onSubmit)}
-        className="max-w-2xl mx-auto p-6 space-y-8"
-      >
-        <h1 className="text-3xl font-bold text-center">Application Form</h1>
-        <StepsProgressBar currentStep={step} steps={formSteps} />
-
-        {step === 0 && <Agreement methods={methods} />}
-        {step === 1 && <Products methods={methods} />}
-        {step === 2 && <BrokerInformation methods={methods} />}
-        {step === 3 && <BorrowerInformation methods={methods} />}
-        {step === 4 && <LoanInformation methods={methods} />}
-        {step === 5 && <SecurityInformation methods={methods} />}
-        {step === 6 && <AdditionalInformation methods={methods} />}
-
-        <div className="flex justify-between">
-          {step > 0 && (
-            <Button
-              type="button"
-              onClick={prevStep}
-              variant="outline"
-              className="rounded-full border-[#263469] text-[#263469]"
-            >
-              Previous
-            </Button>
-          )}
-          {step < formSteps.length - 1 ? (
-            <Button
-              type="button"
-              onClick={nextStep}
-              className="rounded-full bg-[#263469] text-white"
-            >
-              Next
-            </Button>
-          ) : (
-            <Button
-              type="submit"
-              className="rounded-full bg-[#263469] text-white"
-            >
-              Submit
-            </Button>
-          )}
-        </div>
-      </form>
-    </FormProvider>
+    <div className="min-h-screen bg-background">
+      <div className="container max-w-4xl py-8 mx-auto">
+        <FormProvider {...methods}>
+          <form
+            onSubmit={methods.handleSubmit(onSubmit)}
+            className="max-w-2xl mx-auto space-y-8"
+          >
+            <h1 className="text-3xl font-bold text-center mb-8">
+              Loan Application Form
+            </h1>
+            <StepsProgressBar currentStep={currentStep} steps={formSteps} />
+            {currentStep === 0 && <Agreement methods={methods} />}
+            {currentStep === 1 && <Products methods={methods} />}
+            {currentStep === 2 && <BrokerInformation methods={methods} />}
+            {currentStep === 3 && <BorrowerInformation methods={methods} />}
+            {currentStep === 4 && <LoanInformation methods={methods} />}
+            {currentStep === 5 && <SecurityInformation methods={methods} />}
+            {currentStep === 6 && <AdditionalInformation methods={methods} />}
+            <div className="flex justify-between mt-8">
+              {currentStep > 0 && (
+                <Button type="button" variant="outline" onClick={prevStep}>
+                  Previous
+                </Button>
+              )}
+              {currentStep < formSteps.length - 1 ? (
+                <Button type="button" onClick={nextStep}>
+                  Next
+                </Button>
+              ) : (
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Application"
+                  )}
+                </Button>
+              )}
+            </div>
+          </form>
+        </FormProvider>
+      </div>
+    </div>
   );
 }

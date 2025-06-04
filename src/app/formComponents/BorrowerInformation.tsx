@@ -122,7 +122,7 @@ export function BorrowerInformation({
                 <Input {...field} />
               </FormControl>
               <FormDescription>
-                Enter a valid phone number (e.g., +1234567890)
+                Enter your Companies House registration number.
               </FormDescription>
               <FormMessage />
             </FormItem>

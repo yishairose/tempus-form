@@ -23,7 +23,7 @@ export const StepsProgressBar: React.FC<StepsProgressBarProps> = ({
                 currentStep >= index
                   ? "bg-[#263469] text-white"
                   : "bg-gray-300 text-gray-600"
-              } rounded-full transition-colors duration-300`}
+              } rounded-full transition-colors duration-300 z-10`}
             >
               {index + 1}
             </div>
@@ -31,7 +31,8 @@ export const StepsProgressBar: React.FC<StepsProgressBarProps> = ({
               <div
                 className={`absolute w-full h-1 ${
                   currentStep > index ? "bg-[#263469]" : "bg-gray-300"
-                } left-0 top-1/2 transform translate-y-[-50%] z-[-1] transition-colors duration-300`}
+                } left-[50%] top-1/2 transform -translate-y-1/2 z-0 transition-colors duration-300`}
+                style={{ width: "calc(100% - 2.5rem)" }}
               ></div>
             )}
           </div>

@@ -147,33 +147,33 @@ export default function MultiStepForm() {
         product: data.product,
         broker_info: {
           is_broker: data.brokerInfo.isBroker,
-          contact_name: data.brokerInfo.brokerContactName,
-          company_name: data.brokerInfo.brokerCompanyName,
-          phone_number: data.brokerInfo.brokerPhoneNumber,
-          email_address: data.brokerInfo.brokerEmailAddress,
-          fee: data.brokerInfo.brokerFee,
+          contact_name: data.brokerInfo.brokerContactName || "",
+          company_name: data.brokerInfo.brokerCompanyName || "",
+          phone_number: data.brokerInfo.brokerPhoneNumber || "",
+          email_address: data.brokerInfo.brokerEmailAddress || "",
+          fee: data.brokerInfo.brokerFee || "",
         },
         borrower_info: {
-          corporate_name: data.borrowerInfo.borrowerCorporateName,
-          company_number: data.borrowerInfo.borrowerCompanyNumber,
-          phone_number: data.borrowerInfo.borrowerPhoneNumber,
-          email_address: data.borrowerInfo.borrowerEmailAddress,
+          corporate_name: data.borrowerInfo.borrowerCorporateName || "",
+          company_number: data.borrowerInfo.borrowerCompanyNumber || "",
+          phone_number: data.borrowerInfo.borrowerPhoneNumber || "",
+          email_address: data.borrowerInfo.borrowerEmailAddress || "",
           property_experience:
-            data.borrowerInfo.borrowerPropertyExperience?.file_name,
+            data.borrowerInfo.borrowerPropertyExperience || null,
           assets_and_liabilities:
-            data.borrowerInfo.borrowerAssetsAndLiabilities?.file_name,
-          credit_info: data.borrowerInfo.borrowerCreditInfo,
+            data.borrowerInfo.borrowerAssetsAndLiabilities || null,
+          credit_info: data.borrowerInfo.borrowerCreditInfo || "",
         },
         loan_info: {
-          purpose_of_funds: data.loanInfo.purposeOfFunds,
+          purpose_of_funds: data.loanInfo.purposeOfFunds || "",
           background_story: data.loanInfo.backgroundStory || "",
           net_amount_required_day_one:
-            data.loanInfo.netAmountRequiredDayOne.toString(),
+            data.loanInfo.netAmountRequiredDayOne?.toString() || "0",
           net_amount_required_for_works:
-            data.loanInfo.netAmountRequiredForWorks?.toString() || "",
-          ltv_required: data.loanInfo.ltvRequired.toString(),
-          loan_term: data.loanInfo.loanTerm.toString(),
-          exit_strategy: data.loanInfo.exitStrategy,
+            data.loanInfo.netAmountRequiredForWorks?.toString() || "0",
+          ltv_required: data.loanInfo.ltvRequired?.toString() || "0",
+          loan_term: data.loanInfo.loanTerm?.toString() || "0",
+          exit_strategy: data.loanInfo.exitStrategy || "",
           solicitors_name: data.loanInfo.solicitorsName || "",
           solicitors_firm: data.loanInfo.solicitorsFirm || "",
           solicitors_email: data.loanInfo.solicitorsEmail || "",
@@ -181,20 +181,20 @@ export default function MultiStepForm() {
         },
         security_info: {
           securities: data.securityInfo.securities.map((security) => ({
-            asset_type: security.assetType,
-            address_line1: security.addressLine1,
+            asset_type: security.assetType || "",
+            address_line1: security.addressLine1 || "",
             address_line2: security.addressLine2 || "",
             city: security.city || "",
-            post_code: security.postCode,
-            ownership: security.ownership,
+            post_code: security.postCode || "",
+            ownership: security.ownership || "",
             years_remaining: security.yearsRemaining?.toString() || "",
-            purchase_price: security.purchasePrice.toString(),
-            current_debt: security.currentDebt.toString(),
+            purchase_price: security.purchasePrice?.toString() || "0",
+            current_debt: security.currentDebt?.toString() || "0",
             rental_income: security.rentalIncome?.toString() || "",
             description: {
-              property_details: security.description.propertyDetails,
+              property_details: security.description.propertyDetails || "",
             },
-            estimated_value: security.estimatedValue.toString(),
+            estimated_value: security.estimatedValue?.toString() || "0",
             estimated_gdv: security.estimatedGDV?.toString() || "",
           })),
         },
@@ -205,12 +205,22 @@ export default function MultiStepForm() {
                 (file): file is NonNullable<typeof file> => file !== null
               )
               .map((file) => ({
-                file_name: file.file_name,
-                file_url: file.file_url,
+                file_name: file.file_name || "",
+                file_url: file.file_url || "",
               })) || [],
-          credit_consent: data.additionalInfo.q2,
+          credit_consent: data.additionalInfo.q2 || false,
         },
       };
+
+      console.log(
+        "Form data before transformation:",
+        JSON.stringify(data, null, 2)
+      );
+      console.log(
+        "Transformed data for email:",
+        JSON.stringify(transformedData, null, 2)
+      );
+
       const result = await sendEmail(transformedData);
       if (result.success) {
         toast.success("Form submitted successfully!");
@@ -219,6 +229,7 @@ export default function MultiStepForm() {
         toast.error(result.error || "Failed to submit form");
       }
     } catch (error) {
+      console.error("Form submission error:", error);
       const errorMessage =
         error instanceof Error
           ? error.message

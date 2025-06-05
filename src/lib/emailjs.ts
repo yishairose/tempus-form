@@ -8,6 +8,12 @@ interface EmailResponse {
   error?: string;
 }
 
+interface FileInfo {
+  file_id: string;
+  file_url: string;
+  file_name: string;
+}
+
 interface TemplateParams {
   to_email: string;
   product: string;
@@ -24,8 +30,8 @@ interface TemplateParams {
     company_number: string;
     phone_number: string;
     email_address: string;
-    property_experience?: string;
-    assets_and_liabilities?: string;
+    property_experience?: FileInfo | null;
+    assets_and_liabilities?: FileInfo | null;
     credit_info?: string;
   };
   loan_info: {
@@ -72,67 +78,81 @@ interface TemplateParams {
 export async function sendEmail(data: TemplateParams): Promise<EmailResponse> {
   try {
     const templateParams = {
-      to_email: process.env.NEXT_PUBLIC_RECIPIENT_EMAIL,
+      // Product Selection
       product: data.product,
-      broker_info: {
-        is_broker: data.broker_info.is_broker,
-        contact_name: data.broker_info.contact_name || "",
-        company_name: data.broker_info.company_name || "",
-        phone_number: data.broker_info.phone_number || "",
-        email_address: data.broker_info.email_address || "",
-        fee: data.broker_info.fee || "",
-      },
-      borrower_info: {
-        corporate_name: data.borrower_info.corporate_name,
-        company_number: data.borrower_info.company_number,
-        phone_number: data.borrower_info.phone_number,
-        email_address: data.borrower_info.email_address,
-        property_experience: data.borrower_info.property_experience || "",
-        assets_and_liabilities: data.borrower_info.assets_and_liabilities || "",
-        credit_info: data.borrower_info.credit_info || "",
-      },
-      loan_info: {
-        purpose_of_funds: data.loan_info.purpose_of_funds,
-        background_story: data.loan_info.background_story,
-        net_amount_required_day_one: data.loan_info.net_amount_required_day_one,
-        net_amount_required_for_works:
-          data.loan_info.net_amount_required_for_works,
-        ltv_required: data.loan_info.ltv_required,
-        loan_term: data.loan_info.loan_term,
-        exit_strategy: data.loan_info.exit_strategy,
-        solicitors_name: data.loan_info.solicitors_name,
-        solicitors_firm: data.loan_info.solicitors_firm,
-        solicitors_email: data.loan_info.solicitors_email,
-        solicitors_phone: data.loan_info.solicitors_phone,
-      },
-      security_info: {
-        securities: data.security_info.securities.map((security) => ({
-          asset_type: security.asset_type,
-          address_line1: security.address_line1,
-          address_line2: security.address_line2 || "",
-          city: security.city || "",
-          post_code: security.post_code,
-          ownership: security.ownership,
-          years_remaining: security.years_remaining || "",
-          purchase_price: security.purchase_price,
-          current_debt: security.current_debt,
-          rental_income: security.rental_income || "",
-          description: {
-            property_details: security.description.property_details,
-          },
-          estimated_value: security.estimated_value,
-          estimated_gdv: security.estimated_gdv || "",
-        })),
-      },
-      additional_info: {
-        documents:
-          data.additional_info.documents?.map((doc) => ({
-            file_name: doc.file_name,
-            file_url: doc.file_url,
-          })) || [],
-        credit_consent: data.additional_info.credit_consent,
-      },
+      agreement: "Accepted", // Since this is required in the form
+
+      // Broker Information
+      broker_is_broker: data.broker_info.is_broker ? "Yes" : "No",
+      broker_contact_name: data.broker_info.contact_name || "",
+      broker_company_name: data.broker_info.company_name || "",
+      broker_phone: data.broker_info.phone_number || "",
+      broker_email: data.broker_info.email_address || "",
+      broker_fee: data.broker_info.fee || "",
+
+      // Borrower Information
+      borrower_corporate_name: data.borrower_info.corporate_name || "",
+      borrower_company_number: data.borrower_info.company_number || "",
+      borrower_phone: data.borrower_info.phone_number || "",
+      borrower_email: data.borrower_info.email_address || "",
+      borrower_credit_info: data.borrower_info.credit_info || "",
+
+      // Loan Information
+      purpose_of_funds: data.loan_info.purpose_of_funds || "",
+      background_story: data.loan_info.background_story || "",
+      net_amount_day_one: data.loan_info.net_amount_required_day_one || "0",
+      net_amount_works: data.loan_info.net_amount_required_for_works || "0",
+      ltv_required: data.loan_info.ltv_required || "0",
+      loan_term: data.loan_info.loan_term || "0",
+      exit_strategy: data.loan_info.exit_strategy || "",
+
+      // Solicitor Information
+      solicitors_name: data.loan_info.solicitors_name || "",
+      solicitors_firm: data.loan_info.solicitors_firm || "",
+      solicitors_email: data.loan_info.solicitors_email || "",
+      solicitors_phone: data.loan_info.solicitors_phone || "",
+
+      // Security Information
+      securities: data.security_info.securities
+        .map((security, index) => {
+          return `Security ${index + 1}:
+Asset Type: ${security.asset_type || ""}
+Address: ${security.address_line1 || ""}${
+            security.address_line2 ? `, ${security.address_line2}` : ""
+          }${security.city ? `, ${security.city}` : ""}
+Post Code: ${security.post_code || ""}
+Ownership: ${security.ownership || ""}
+Years Remaining: ${security.years_remaining || ""}
+Purchase Price: ${security.purchase_price || "0"}
+Current Debt: ${security.current_debt || "0"}
+Rental Income: ${security.rental_income || ""}
+Property Details: ${security.description.property_details || ""}
+Estimated Value: ${security.estimated_value || "0"}
+Estimated GDV: ${security.estimated_gdv || ""}
+`;
+        })
+        .join("\n"),
+
+      // Additional Information
+      credit_search_consent: data.additional_info.credit_consent ? "Yes" : "No",
+
+      // Attachments
+      property_experience: data.borrower_info.property_experience
+        ? `File: ${data.borrower_info.property_experience.file_name}\nURL: ${data.borrower_info.property_experience.file_url}`
+        : "",
+      assets_liabilities: data.borrower_info.assets_and_liabilities
+        ? `File: ${data.borrower_info.assets_and_liabilities.file_name}\nURL: ${data.borrower_info.assets_and_liabilities.file_url}`
+        : "",
+      additional_documents:
+        data.additional_info.documents
+          ?.map((doc) => `File: ${doc.file_name}\nURL: ${doc.file_url}`)
+          .join("\n\n") || "",
     };
+
+    console.log(
+      "Sending email with template params:",
+      JSON.stringify(templateParams, null, 2)
+    );
 
     await emailjs.send(
       process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "",

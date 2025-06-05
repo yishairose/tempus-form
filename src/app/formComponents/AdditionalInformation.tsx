@@ -111,7 +111,7 @@ export function AdditionalInformation({
       const currentFiles =
         (methods.getValues(fieldName) as UploadedFile[]) || [];
       const updatedFiles = currentFiles.filter(
-        (file) => file.file_id !== fileId
+        (file) => file && file.file_id !== fileId
       );
 
       methods.setValue(fieldName, updatedFiles);

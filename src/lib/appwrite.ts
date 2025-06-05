@@ -86,3 +86,32 @@ export async function removeFile(fileId: string) {
     throw new Error(message);
   }
 }
+
+export async function getFileUrl(fileId: string): Promise<string> {
+  if (!fileId) {
+    throw new Error("Invalid fileId provided");
+  }
+  try {
+    const file = await storage.getFile(process.env.APPWRITE_BUCKET_ID!, fileId);
+
+    if (!file) {
+      throw new Error("File not found");
+    }
+
+    const fileUrl = storage.getFileView(
+      process.env.APPWRITE_BUCKET_ID!,
+      fileId
+    );
+
+    if (!fileUrl) {
+      throw new Error("Failed to get file URL");
+    }
+
+    return fileUrl;
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to get file URL";
+    console.error(message);
+    throw new Error(message);
+  }
+}
